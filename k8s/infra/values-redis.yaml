@@ -1,0 +1,53 @@
+auth:
+  enabled: true
+  password: "redis123"
+
+master:
+  persistence:
+    enabled: true
+    size: 5Gi
+    storageClass: "local-path"
+  
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "200m"
+
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+    successThreshold: 1
+
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+    successThreshold: 1
+
+replica:
+  replicaCount: 1
+  persistence:
+    enabled: true
+    size: 5Gi
+    storageClass: "local-path"
+  
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "200m"
+
+metrics:
+  enabled: true
+  serviceMonitor:
+    enabled: false
