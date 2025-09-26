@@ -13,4 +13,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/healthz/', healthz, name='healthz'),
     path('api/', include('rest_framework.urls')),
+    path('api/auth/', include('accounts.urls')),
 ]
