@@ -14,4 +14,6 @@ urlpatterns = [
     path('api/healthz/', healthz, name='healthz'),
     path('api/', include('rest_framework.urls')),
     path('api/auth/', include('accounts.urls')),
+    path('api/', include('catalog.urls')),
+    path('api/cart/', include('cart.urls')),
 ]
