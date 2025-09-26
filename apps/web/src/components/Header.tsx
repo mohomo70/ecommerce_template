@@ -43,13 +43,35 @@ export default function Header() {
             >
               Products
             </Link>
+            <Link
+              href="/support"
+              className="text-gray-500 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+            >
+              Support
+            </Link>
+            <Link
+              href="/support/faq"
+              className="text-gray-500 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+            >
+              FAQ
+            </Link>
             {user && (
-              <Link
-                href="/account"
-                className="text-gray-500 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
-              >
-                Account
-              </Link>
+              <>
+                <Link
+                  href="/account"
+                  className="text-gray-500 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Account
+                </Link>
+                {user.role === 'admin' && (
+                  <Link
+                    href="/admin/analytics"
+                    className="text-gray-500 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                  >
+                    Analytics
+                  </Link>
+                )}
+              </>
             )}
           </nav>
 

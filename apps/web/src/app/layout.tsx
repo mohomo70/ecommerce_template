@@ -5,6 +5,8 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
 import { CheckoutProvider } from "@/contexts/CheckoutContext";
 import { PaymentProvider } from "@/contexts/PaymentContext";
+import { SupportProvider } from "@/contexts/SupportContext";
+import { AnalyticsProvider } from "@/contexts/AnalyticsContext";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
 import Header from "@/components/Header";
@@ -70,7 +72,11 @@ function Providers({ children }: { children: React.ReactNode }) {
         <CartProvider>
           <CheckoutProvider>
             <PaymentProvider>
-              {children}
+              <SupportProvider>
+                <AnalyticsProvider>
+                  {children}
+                </AnalyticsProvider>
+              </SupportProvider>
             </PaymentProvider>
           </CheckoutProvider>
         </CartProvider>
