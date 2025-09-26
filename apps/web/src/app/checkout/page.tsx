@@ -6,6 +6,7 @@ import { useCheckout } from '@/contexts/CheckoutContext';
 import { useCart } from '@/contexts/CartContext';
 import CheckoutStepper from '@/components/CheckoutStepper';
 import AddressForm from '@/components/AddressForm';
+import PaymentForm from '@/components/PaymentForm';
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -49,6 +50,8 @@ export default function CheckoutPage() {
   });
 
   const [useSameAddress, setUseSameAddress] = useState(true);
+  const [orderId, setOrderId] = useState<number | null>(null);
+  const [orderNumber, setOrderNumber] = useState<string>('');
 
   // Redirect if cart is empty
   useEffect(() => {
@@ -103,9 +106,15 @@ export default function CheckoutPage() {
     },
     {
       id: 3,
-      title: 'Review & Payment',
-      description: 'Review your order and pay',
+      title: 'Review Order',
+      description: 'Review your order details',
       completed: currentStep > 3,
+    },
+    {
+      id: 4,
+      title: 'Payment',
+      description: 'Complete your payment',
+      completed: currentStep > 4,
     },
   ];
 
@@ -131,11 +140,22 @@ export default function CheckoutPage() {
   const handleFinalizeOrder = async () => {
     try {
       const result = await finalizeOrder();
-      router.push(`/orders/${result.order_id}`);
+      setOrderId(result.order_id);
+      setOrderNumber(result.order_number);
+      setCurrentStep(4); // Move to payment step
     } catch (error) {
       console.error('Failed to finalize order:', error);
       // Handle error (show toast, etc.)
     }
+  };
+
+  const handlePaymentSuccess = (orderId: number, orderNumber: string) => {
+    router.push(`/orders/${orderId}`);
+  };
+
+  const handlePaymentError = (error: string) => {
+    console.error('Payment error:', error);
+    // Handle error (show toast, etc.)
   };
 
   if (isLoading) {
@@ -283,6 +303,19 @@ export default function CheckoutPage() {
                     {isFinalizing ? 'Processing...' : 'Place Order'}
                   </button>
                 </div>
+              </div>
+            )}
+
+            {currentStep === 4 && orderId && (
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">Complete Payment</h2>
+                <PaymentForm
+                  orderId={orderId}
+                  orderNumber={orderNumber}
+                  total={cart.totals.total + 10} // Include shipping
+                  onSuccess={handlePaymentSuccess}
+                  onError={handlePaymentError}
+                />
               </div>
             )}
           </div>
