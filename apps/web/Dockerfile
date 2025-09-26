@@ -1,60 +1,58 @@
-# Use the official Node.js 20 image as base
-FROM node:20-alpine AS base
+# Multi-stage build for Next.js web app
+FROM node:18-alpine AS base
 
-# Install pnpm
-RUN npm install -g pnpm
-
-# Set working directory
+# Install dependencies only when needed
+FROM base AS deps
+RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Copy package files
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY apps/web/package.json ./apps/web/
+# Install dependencies based on the preferred package manager
+COPY package.json pnpm-lock.yaml* ./
+RUN corepack enable pnpm && pnpm i --frozen-lockfile
 
-# Install dependencies
-RUN pnpm install --frozen-lockfile
+# Rebuild the source code only when needed
+FROM base AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
 
-# Copy source code
-COPY apps/web ./apps/web
+# Next.js collects completely anonymous telemetry data about general usage.
+# Learn more here: https://nextjs.org/telemetry
+# Uncomment the following line in case you want to disable telemetry during the build.
+ENV NEXT_TELEMETRY_DISABLED 1
 
-# Build the application
-RUN pnpm --filter web build
+RUN corepack enable pnpm && pnpm build
 
-# Production stage
-FROM node:20-alpine AS production
-
-# Install pnpm
-RUN npm install -g pnpm
-
-# Set working directory
+# Production image, copy all the files and run next
+FROM base AS runner
 WORKDIR /app
 
-# Copy package files
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY apps/web/package.json ./apps/web/
+ENV NODE_ENV production
+ENV NEXT_TELEMETRY_DISABLED 1
 
-# Install production dependencies only
-RUN pnpm install --frozen-lockfile --prod
-
-# Copy built application
-COPY --from=base /app/apps/web/.next ./apps/web/.next
-COPY --from=base /app/apps/web/public ./apps/web/public
-COPY --from=base /app/apps/web/next.config.ts ./apps/web/
-
-# Create non-root user
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Change ownership of the app directory
-RUN chown -R nextjs:nodejs /app
+COPY --from=builder /app/public ./public
+
+# Set the correct permission for prerender cache
+RUN mkdir .next
+RUN chown nextjs:nodejs .next
+
+# Automatically leverage output traces to reduce image size
+# https://nextjs.org/docs/advanced-features/output-file-tracing
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
 USER nextjs
 
-# Expose port
 EXPOSE 3000
 
-# Set environment variables
-ENV NODE_ENV=production
-ENV PORT=3000
+ENV PORT 3000
+ENV HOSTNAME "0.0.0.0"
 
-# Start the application
-CMD ["pnpm", "--filter", "web", "start"]
+# Health check
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:3000/ || exit 1
+
+CMD ["node", "server.js"]
