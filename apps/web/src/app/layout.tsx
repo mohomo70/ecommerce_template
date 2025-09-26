@@ -7,6 +7,7 @@ import { CheckoutProvider } from "@/contexts/CheckoutContext";
 import { PaymentProvider } from "@/contexts/PaymentContext";
 import { SupportProvider } from "@/contexts/SupportContext";
 import { AnalyticsProvider } from "@/contexts/AnalyticsContext";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
 import Header from "@/components/Header";
@@ -74,7 +75,9 @@ function Providers({ children }: { children: React.ReactNode }) {
             <PaymentProvider>
               <SupportProvider>
                 <AnalyticsProvider>
-                  {children}
+                  <ErrorBoundary>
+                    {children}
+                  </ErrorBoundary>
                 </AnalyticsProvider>
               </SupportProvider>
             </PaymentProvider>
