@@ -1,0 +1,40 @@
+auth:
+  postgresPassword: "postgres123"
+  username: "ecommerce"
+  password: "ecommerce123"
+  database: "ecommerce"
+
+primary:
+  persistence:
+    enabled: true
+    size: 10Gi
+    storageClass: "local-path"
+  
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+    successThreshold: 1
+
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+    successThreshold: 1
+
+metrics:
+  enabled: true
+  serviceMonitor:
+    enabled: false
