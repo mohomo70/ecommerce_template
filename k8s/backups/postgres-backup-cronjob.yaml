@@ -1,0 +1,81 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgres-backup
+  namespace: infra
+spec:
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: postgres-backup
+            image: postgres:13
+            env:
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: pg-postgresql
+                  key: postgres-password
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: aws-credentials
+                  key: access-key-id
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: aws-credentials
+                  key: secret-access-key
+            - name: S3_BUCKET
+              value: "ecommerce-backups"
+            - name: S3_REGION
+              value: "us-east-1"
+            command:
+            - /bin/bash
+            - -c
+            - |
+              set -e
+              echo "Starting PostgreSQL backup..."
+              
+              # Create backup filename with timestamp
+              BACKUP_FILE="postgres-backup-$(date +%Y%m%d-%H%M%S).sql"
+              
+              # Create backup
+              echo "Creating database backup..."
+              pg_dump -h pg-postgresql.infra.svc.cluster.local -U postgres -d ecommerce > /tmp/$BACKUP_FILE
+              
+              # Compress backup
+              echo "Compressing backup..."
+              gzip /tmp/$BACKUP_FILE
+              
+              # Upload to S3
+              echo "Uploading to S3..."
+              aws s3 cp /tmp/$BACKUP_FILE.gz s3://$S3_BUCKET/postgres/$BACKUP_FILE.gz --region $S3_REGION
+              
+              # Clean up old backups (keep last 30 days)
+              echo "Cleaning up old backups..."
+              aws s3 ls s3://$S3_BUCKET/postgres/ --region $S3_REGION | while read -r line; do
+                createDate=$(echo $line | awk '{print $1" "$2}')
+                createDate=$(date -d"$createDate" +%s)
+                olderThan=$(date -d"30 days ago" +%s)
+                if [[ $createDate -lt $olderThan ]]; then
+                  fileName=$(echo $line | awk '{print $4}')
+                  if [[ $fileName != "" ]]; then
+                    aws s3 rm s3://$S3_BUCKET/postgres/$fileName --region $S3_REGION
+                  fi
+                fi
+              done
+              
+              echo "Backup completed successfully!"
+            resources:
+              requests:
+                memory: "256Mi"
+                cpu: "250m"
+              limits:
+                memory: "512Mi"
+                cpu: "500m"
+          restartPolicy: OnFailure
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3

@@ -1,0 +1,70 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: postgres-restore
+  namespace: infra
+spec:
+  template:
+    spec:
+      containers:
+      - name: postgres-restore
+        image: postgres:13
+        env:
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: pg-postgresql
+              key: postgres-password
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: aws-credentials
+              key: access-key-id
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: aws-credentials
+              key: secret-access-key
+        - name: S3_BUCKET
+          value: "ecommerce-backups"
+        - name: S3_REGION
+          value: "us-east-1"
+        - name: BACKUP_FILE
+          value: "postgres-backup-20240101-020000.sql.gz"  # Specify backup file
+        command:
+        - /bin/bash
+        - -c
+        - |
+          set -e
+          echo "Starting PostgreSQL restore..."
+          
+          # Download backup from S3
+          echo "Downloading backup from S3..."
+          aws s3 cp s3://$S3_BUCKET/postgres/$BACKUP_FILE /tmp/backup.sql.gz --region $S3_REGION
+          
+          # Decompress backup
+          echo "Decompressing backup..."
+          gunzip /tmp/backup.sql.gz
+          
+          # Create database if it doesn't exist
+          echo "Creating database if needed..."
+          psql -h pg-postgresql.infra.svc.cluster.local -U postgres -c "CREATE DATABASE ecommerce_restore;" || true
+          
+          # Restore database
+          echo "Restoring database..."
+          psql -h pg-postgresql.infra.svc.cluster.local -U postgres -d ecommerce_restore < /tmp/backup.sql
+          
+          # Verify restore
+          echo "Verifying restore..."
+          psql -h pg-postgresql.infra.svc.cluster.local -U postgres -d ecommerce_restore -c "SELECT COUNT(*) FROM django_migrations;"
+          
+          echo "Restore completed successfully!"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+      restartPolicy: Never
+  backoffLimit: 3
