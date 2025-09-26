@@ -1,0 +1,54 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: api-migration-job
+  namespace: prod
+  labels:
+    app: api
+    job-type: migration
+spec:
+  template:
+    spec:
+      containers:
+      - name: migration
+        image: ghcr.io/your-username/ecommerce-api:latest
+        command:
+        - /bin/bash
+        - -c
+        - |
+          echo "Running database migrations..."
+          python manage.py migrate
+          echo "Collecting static files..."
+          python manage.py collectstatic --noinput
+          echo "Migration job completed successfully"
+        envFrom:
+        - secretRef:
+            name: app-secrets
+        - configMapRef:
+            name: app-config
+        env:
+        - name: DATABASE_URL
+          value: "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)"
+        - name: CELERY_BROKER_URL
+          value: "redis://:$(REDIS_PASSWORD)@$(REDIS_HOST):$(REDIS_PORT)/0"
+        volumeMounts:
+        - name: media-volume
+          mountPath: /app/media
+        - name: static-volume
+          mountPath: /app/staticfiles
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+      volumes:
+      - name: media-volume
+        persistentVolumeClaim:
+          claimName: media-pvc
+      - name: static-volume
+        persistentVolumeClaim:
+          claimName: static-pvc
+      restartPolicy: Never
+  backoffLimit: 3
