@@ -5,14 +5,13 @@ Sentry.init({
   environment: process.env.NODE_ENV,
   tracesSampleRate: 0.1,
   debug: false,
+  tracePropagationTargets: [
+    'localhost',
+    /^https:\/\/api\.staging\.example\.com/,
+    /^https:\/\/api\.example\.com/,
+  ],
   integrations: [
-    new Sentry.BrowserTracing({
-      tracePropagationTargets: [
-        'localhost',
-        /^https:\/\/api\.staging\.example\.com/,
-        /^https:\/\/api\.example\.com/,
-      ],
-    }),
+    Sentry.browserTracingIntegration(),
   ],
   beforeSend(event) {
     // Filter out development errors

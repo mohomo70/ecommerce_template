@@ -90,7 +90,7 @@ export async function generateMetadata({ params }: ProductDetailPageProps): Prom
       title: product.name,
       description: product.short_description || product.description.slice(0, 160),
       images: primaryImage ? [primaryImage.image] : [],
-      type: 'product',
+      type: 'website',
     },
     twitter: {
       card: 'summary_large_image',

@@ -166,7 +166,7 @@ export default function OrderDetailPage() {
                       </div>
                       <div className="text-right">
                         <p className="text-sm font-medium text-gray-900">
-                          ${item.price} × {item.quantity}
+                          ${item.variant.price} × {item.quantity}
                         </p>
                         <p className="text-sm font-medium text-gray-900">
                           ${item.line_total}

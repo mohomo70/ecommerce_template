@@ -6,7 +6,7 @@ Sentry.init({
   tracesSampleRate: 0.1,
   debug: false,
   integrations: [
-    new Sentry.Integrations.Http({ tracing: true }),
+    Sentry.httpIntegration(),
   ],
   beforeSend(event) {
     // Filter out development errors

@@ -63,7 +63,7 @@ export default function Header() {
                 >
                   Account
                 </Link>
-                {user.role === 'admin' && (
+                {user.roles.includes('admin') && (
                   <Link
                     href="/admin/analytics"
                     className="text-gray-500 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"

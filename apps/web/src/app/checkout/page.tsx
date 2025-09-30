@@ -118,15 +118,81 @@ export default function CheckoutPage() {
     },
   ];
 
-  const handleBillingSubmit = async (data: typeof billingAddress) => {
-    setBillingAddress(data);
-    await updateBillingAddress(data);
+  const handleBillingSubmit = async (data: {
+    first_name: string;
+    last_name: string;
+    company?: string;
+    address_1: string;
+    address_2?: string;
+    city: string;
+    state: string;
+    postal_code: string;
+    country: string;
+    phone?: string;
+  }) => {
+    setBillingAddress({
+      first_name: data.first_name,
+      last_name: data.last_name,
+      company: data.company || '',
+      address_1: data.address_1,
+      address_2: data.address_2 || '',
+      city: data.city,
+      state: data.state,
+      postal_code: data.postal_code,
+      country: data.country,
+      phone: data.phone || '',
+    });
+    await updateBillingAddress({
+      first_name: data.first_name,
+      last_name: data.last_name,
+      company: data.company || '',
+      address_1: data.address_1,
+      address_2: data.address_2 || '',
+      city: data.city,
+      state: data.state,
+      postal_code: data.postal_code,
+      country: data.country,
+      phone: data.phone || '',
+    });
     setCurrentStep(2);
   };
 
-  const handleShippingSubmit = async (data: typeof shippingAddress) => {
-    setShippingAddress(data);
-    await updateShippingAddress(data);
+  const handleShippingSubmit = async (data: {
+    first_name: string;
+    last_name: string;
+    company?: string;
+    address_1: string;
+    address_2?: string;
+    city: string;
+    state: string;
+    postal_code: string;
+    country: string;
+    phone?: string;
+  }) => {
+    setShippingAddress({
+      first_name: data.first_name,
+      last_name: data.last_name,
+      company: data.company || '',
+      address_1: data.address_1,
+      address_2: data.address_2 || '',
+      city: data.city,
+      state: data.state,
+      postal_code: data.postal_code,
+      country: data.country,
+      phone: data.phone || '',
+    });
+    await updateShippingAddress({
+      first_name: data.first_name,
+      last_name: data.last_name,
+      company: data.company || '',
+      address_1: data.address_1,
+      address_2: data.address_2 || '',
+      city: data.city,
+      state: data.state,
+      postal_code: data.postal_code,
+      country: data.country,
+      phone: data.phone || '',
+    });
     setCurrentStep(3);
   };
 

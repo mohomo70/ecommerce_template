@@ -22,7 +22,7 @@ export const AnalyticsDashboard: React.FC = () => {
   const [selectedPeriod, setSelectedPeriod] = useState(30);
 
   useEffect(() => {
-    if (user && user.role === 'admin') {
+    if (user && user.roles.includes('admin')) {
       fetchSummary(selectedPeriod);
       fetchTopProducts(selectedPeriod);
       fetchTopCategories(selectedPeriod);
@@ -30,7 +30,7 @@ export const AnalyticsDashboard: React.FC = () => {
     }
   }, [selectedPeriod, user]);
 
-  if (!user || user.role !== 'admin') {
+  if (!user || !user.roles.includes('admin')) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
