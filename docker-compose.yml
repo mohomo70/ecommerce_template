@@ -51,10 +51,11 @@ services:
       - REDIS_URL=redis://redis:6379/0
       - EMAIL_HOST=mailhog
       - EMAIL_PORT=1025
+      - ALLOWED_HOSTS=YOUR_IP,localhost,127.0.0.1
     volumes:
       - ./apps/api:/app
     ports:
-      - "8000:8000"
+      - "0.0.0.0:8000:8000"
     depends_on:
       db:
         condition: service_healthy
@@ -72,22 +73,22 @@ services:
       dockerfile: apps/web/Dockerfile
     environment:
       - NODE_ENV=development
-      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - NEXT_PUBLIC_API_URL=http://45.140.147.81:8000
     volumes:
       - ./apps/web:/app/apps/web
       - /app/apps/web/node_modules
       - /app/apps/web/.next
     ports:
-      - "3000:3000"
+      - "0.0.0.0:3000:3000"
     depends_on:
       - api
-    command: pnpm --filter web dev
+    command: pnpm --filter web dev --hostname 0.0.0.0 
 
   # Nginx Reverse Proxy
   nginx:
     image: nginx:alpine
     ports:
-      - "80:80"
+      - "0.0.0.0:80:80"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
     depends_on:
