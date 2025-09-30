@@ -130,7 +130,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   };
 
   const value = {
-    cart,
+    cart: cart ?? null,
     isLoading,
     addToCart,
     updateCartItem,

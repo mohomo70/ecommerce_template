@@ -171,7 +171,7 @@ export function CheckoutProvider({ children }: { children: React.ReactNode }) {
   const value = {
     currentStep,
     setCurrentStep,
-    draft,
+    draft: draft ?? null,
     isLoading,
     createDraft,
     updateBillingAddress,

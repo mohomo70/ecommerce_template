@@ -195,7 +195,7 @@ export const AnalyticsProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   useEffect(() => {
-    if (user && user.role === 'admin') {
+    if (user && user.roles.includes('admin')) {
       fetchSummary();
       fetchTopProducts();
       fetchTopCategories();
