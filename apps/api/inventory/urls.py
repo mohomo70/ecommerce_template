@@ -13,4 +13,5 @@ urlpatterns = [
     path('movements/', views.StockMovementListView.as_view(), name='stock-movement-list'),
     path('levels/', views.stock_levels, name='stock-levels'),
     path('valuation/', views.inventory_valuation, name='inventory-valuation'),
+    path('stream/', views.inventory_stream, name='inventory-stream'),
 ]

@@ -6,12 +6,14 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+from django_ratelimit.decorators import ratelimit
 from .serializers import UserSerializer, LoginSerializer, RegisterSerializer
 from .models import User
 
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
+@ratelimit(key='ip', rate='5/m', method='POST', block=True)
 def login_view(request):
     """Login endpoint that sets session cookie."""
     serializer = LoginSerializer(data=request.data)
@@ -27,6 +29,7 @@ def login_view(request):
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
+@ratelimit(key='ip', rate='3/m', method='POST', block=True)
 def register_view(request):
     """Register new user endpoint."""
     serializer = RegisterSerializer(data=request.data)

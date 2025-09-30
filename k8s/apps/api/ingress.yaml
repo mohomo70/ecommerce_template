@@ -4,30 +4,36 @@ metadata:
   name: api-ingress
   namespace: prod
   annotations:
-    cert-manager.io/cluster-issuer: "letsencrypt-staging"
-    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+    nginx.ingress.kubernetes.io/rate-limit-window: "1m"
+    nginx.ingress.kubernetes.io/rate-limit-connections: "10"
+    nginx.ingress.kubernetes.io/rate-limit-requests: "100"
+    nginx.ingress.kubernetes.io/auth-rate-limit: "10"
+    nginx.ingress.kubernetes.io/auth-rate-limit-window: "1m"
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
 spec:
   tls:
   - hosts:
-    - api.staging.example.com
+    - api.yourdomain.com
     secretName: api-tls
   rules:
-  - host: api.staging.example.com
+  - host: api.yourdomain.com
     http:
       paths:
-      - path: /api/payments/webhook
-        pathType: Exact
-        backend:
-          service:
-            name: api-service
-            port:
-              number: 80
-      - path: /
+      - path: /api/auth
         pathType: Prefix
         backend:
           service:
             name: api-service
             port:
-              number: 80
+              number: 8000
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: api-service
+            port:
+              number: 8000

@@ -4,6 +4,7 @@ URL configuration for api project.
 from django.contrib import admin
 from django.urls import path, include
 from django.http import JsonResponse
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 
 def healthz(request):
     """Health check endpoint."""
@@ -21,4 +22,9 @@ urlpatterns = [
     path('api/inventory/', include('inventory.urls')),
     path('api/support/', include('support.urls')),
     path('api/analytics/', include('analytics.urls')),
+    path('api/', include('feature_flags.urls')),
+    # OpenAPI documentation
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
 ]

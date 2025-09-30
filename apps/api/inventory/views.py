@@ -5,7 +5,10 @@ from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from django.db.models import Sum, Q, F
 from django.utils import timezone
+from django.http import StreamingHttpResponse
 from datetime import datetime, timedelta
+import json
+import time
 from .models import StockAdjustment, LowStockAlert, InventoryReport, StockMovement
 from .serializers import (
     StockAdjustmentSerializer, LowStockAlertSerializer, InventoryReportSerializer,
@@ -331,3 +334,74 @@ def get_low_stock_data():
         }
         for alert in alerts
     ]
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def inventory_stream(request):
+    """Server-Sent Events stream for real-time inventory updates."""
+    
+    def event_stream():
+        last_check = timezone.now()
+        
+        while True:
+            # Check for new stock movements since last check
+            new_movements = StockMovement.objects.filter(
+                created_at__gt=last_check
+            ).select_related('variant', 'variant__product').order_by('created_at')
+            
+            for movement in new_movements:
+                # Get current stock level
+                current_stock = movement.variant.stock_quantity
+                
+                # Prepare event data
+                event_data = {
+                    'type': 'inventory_update',
+                    'variant_id': movement.variant.id,
+                    'sku': movement.variant.sku,
+                    'product_name': movement.variant.product.name,
+                    'movement_type': movement.movement_type,
+                    'quantity_change': movement.quantity,
+                    'current_stock': current_stock,
+                    'timestamp': movement.created_at.isoformat(),
+                    'reference': movement.reference,
+                }
+                
+                # Send SSE event
+                yield f"data: {json.dumps(event_data)}\n\n"
+            
+            # Check for low stock alerts
+            new_alerts = LowStockAlert.objects.filter(
+                created_at__gt=last_check,
+                status='active'
+            ).select_related('variant', 'variant__product')
+            
+            for alert in new_alerts:
+                event_data = {
+                    'type': 'low_stock_alert',
+                    'variant_id': alert.variant.id,
+                    'sku': alert.variant.sku,
+                    'product_name': alert.variant.product.name,
+                    'current_stock': alert.current_stock,
+                    'threshold': alert.threshold,
+                    'timestamp': alert.created_at.isoformat(),
+                }
+                
+                yield f"data: {json.dumps(event_data)}\n\n"
+            
+            # Update last check time
+            last_check = timezone.now()
+            
+            # Wait before next check
+            time.sleep(5)
+    
+    response = StreamingHttpResponse(
+        event_stream(),
+        content_type='text/event-stream'
+    )
+    response['Cache-Control'] = 'no-cache'
+    response['Connection'] = 'keep-alive'
+    response['Access-Control-Allow-Origin'] = '*'
+    response['Access-Control-Allow-Headers'] = 'Cache-Control'
+    
+    return response

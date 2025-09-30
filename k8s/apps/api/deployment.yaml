@@ -17,11 +17,27 @@ spec:
         app: api
         version: v1
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
       - name: api
         image: ghcr.io/your-username/ecommerce-api:latest
         ports:
         - containerPort: 8000
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 1000
+          runAsGroup: 1000
+          capabilities:
+            drop:
+            - ALL
         envFrom:
         - secretRef:
             name: app-secrets
@@ -60,6 +76,12 @@ spec:
           mountPath: /app/media
         - name: static-volume
           mountPath: /app/staticfiles
+        - name: tmp-volume
+          mountPath: /tmp
+        - name: var-cache
+          mountPath: /var/cache
+        - name: var-log
+          mountPath: /var/log
       volumes:
       - name: media-volume
         persistentVolumeClaim:
@@ -67,4 +89,10 @@ spec:
       - name: static-volume
         persistentVolumeClaim:
           claimName: static-pvc
+      - name: tmp-volume
+        emptyDir: {}
+      - name: var-cache
+        emptyDir: {}
+      - name: var-log
+        emptyDir: {}
       restartPolicy: Always
