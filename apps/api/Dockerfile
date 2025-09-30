@@ -19,11 +19,11 @@ RUN apt-get update \
 WORKDIR /app
 
 # Install Python dependencies
-COPY requirements.txt .
+COPY apps/api/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy project
-COPY . .
+COPY apps/api/ .
 
 # Create non-root user
 RUN adduser --disabled-password --gecos '' appuser \
