@@ -1,0 +1,47 @@
+# Monorepo unified ignore (Next.js + Django)
+
+# Node/Next.js
+node_modules/
+**/.next/
+**/.turbo/
+**/out/
+pnpm-lock.yaml
+npm-debug.log*
+yarn-error.log*
+*.log
+
+# Python/Django
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/.pytest_cache/
+.venv/
+venv/
+
+# Django build artifacts
+apps/api/media/
+apps/api/staticfiles/
+
+# Env files
+.env
+.env.*
+
+# Coverage/Reports
+coverage/
+.coverage*
+.nyc_output/
+
+# IDE/OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Playwright / E2E
+apps/web/playwright-report/
+apps/web/test-results/
+
+# Misc
+*.sqlite3
+
+
