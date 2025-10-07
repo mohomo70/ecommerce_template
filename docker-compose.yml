@@ -73,7 +73,7 @@ services:
       dockerfile: apps/web/Dockerfile
     environment:
       - NODE_ENV=development
-      - NEXT_PUBLIC_API_URL=http://45.140.147.81:8000
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
     volumes:
       - ./apps/web:/app/apps/web
       - /app/apps/web/node_modules
@@ -82,7 +82,7 @@ services:
       - "0.0.0.0:3000:3000"
     depends_on:
       - api
-    command: pnpm --filter web dev --hostname 0.0.0.0 
+    command: sh -c "cd apps/web && npm run dev -- -H 0.0.0.0" 
 
   # Nginx Reverse Proxy
   nginx:

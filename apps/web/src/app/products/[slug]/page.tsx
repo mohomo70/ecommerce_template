@@ -40,10 +40,11 @@ interface Product {
   updated_at: string;
 }
 
+// Next.js 15 streams route params; they arrive as a Promise in server components
 interface ProductDetailPageProps {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
 // Generate static params for ISR
@@ -73,7 +74,8 @@ async function getProduct(slug: string): Promise<Product | null> {
 
 // Generate metadata for SEO
 export async function generateMetadata({ params }: ProductDetailPageProps): Promise<Metadata> {
-  const product = await getProduct(params.slug);
+  const { slug } = await params;
+  const product = await getProduct(slug);
   
   if (!product) {
     return {
@@ -105,7 +107,8 @@ export async function generateMetadata({ params }: ProductDetailPageProps): Prom
 }
 
 export default async function ProductDetailPage({ params }: ProductDetailPageProps) {
-  const product = await getProduct(params.slug);
+  const { slug } = await params;
+  const product = await getProduct(slug);
   
   if (!product) {
     notFound();
