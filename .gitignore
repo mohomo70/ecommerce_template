@@ -17,10 +17,15 @@ yarn-error.log*
 **/.pytest_cache/
 .venv/
 venv/
+**/venv/
 
 # Django build artifacts
 apps/api/media/
 apps/api/staticfiles/
+apps/api/db.sqlite3
+
+# Django migrations - DO NOT ignore these!
+# Migration files should be committed to version control
 
 # Env files
 .env
