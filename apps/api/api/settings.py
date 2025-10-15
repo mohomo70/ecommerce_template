@@ -17,7 +17,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-change-me-in-producti
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,45.140.147.81').split(',')
 
 # Application definition
 INSTALLED_APPS = [
@@ -54,7 +54,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'catalog.middleware.DatabasePerformanceMiddleware',
     'csp.middleware.CSPMiddleware',
-    'ratelimit.middleware.RatelimitMiddleware',
+    'django_ratelimit.middleware.RatelimitMiddleware',
 ]
 
 ROOT_URLCONF = 'api.urls'
@@ -149,6 +149,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "http://0.0.0.0:3000",
+    "http://45.140.147.81:3000",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -158,6 +159,7 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "http://0.0.0.0:3000",
+    "http://45.140.147.81:3000",
 ]
 
 # Stripe settings
@@ -227,11 +229,35 @@ SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
 
 # Content Security Policy
 CSP_DEFAULT_SRC = ("'self'",)
-CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'", "https://js.stripe.com")
-CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "https://fonts.googleapis.com")
-CSP_FONT_SRC = ("'self'", "https://fonts.gstatic.com")
-CSP_IMG_SRC = ("'self'", "data:", "https:")
-CSP_CONNECT_SRC = ("'self'", "https://api.stripe.com")
+CSP_SCRIPT_SRC = (
+    "'self'", 
+    "'unsafe-inline'", 
+    "'unsafe-eval'",  # Add this - required for Swagger UI
+    "https://js.stripe.com",
+    "https://cdn.jsdelivr.net",  # Add this for Swagger UI JS
+)
+CSP_STYLE_SRC = (
+    "'self'", 
+    "'unsafe-inline'", 
+    "https://fonts.googleapis.com",
+    "https://cdn.jsdelivr.net",  # Add this for Swagger UI CSS
+)
+CSP_FONT_SRC = (
+    "'self'", 
+    "https://fonts.gstatic.com",
+    "https://cdn.jsdelivr.net",  # Add this for Swagger UI fonts
+)
+CSP_IMG_SRC = (
+    "'self'", 
+    "data:", 
+    "https:",
+    "https://cdn.jsdelivr.net",  # Add this for Swagger UI images
+)
+CSP_CONNECT_SRC = (
+    "'self'", 
+    "https://api.stripe.com",
+    "https://cdn.jsdelivr.net",  # Add this if Swagger makes API calls to CDN
+)
 CSP_FRAME_SRC = ("'self'", "https://js.stripe.com", "https://hooks.stripe.com")
 
 # Rate limiting
